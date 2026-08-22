@@ -391,8 +391,8 @@ class AirportQuiz:
         self.map_frame = tk.Frame(
             self.root,
             bg="#ffffff",
-            highlightthickness=1,
-            highlightbackground="#dddddd"
+            highlightthickness=0,
+            highlightbackground="#555555"
         )
 
         self.map_frame.pack(
@@ -406,7 +406,7 @@ class AirportQuiz:
         self.map_canvas = tk.Canvas(
             self.map_frame,
             height=300,
-            bg="#edf1f2",
+            bg="#9b9b9b",
             highlightthickness=0
         )
 
@@ -857,9 +857,7 @@ class AirportQuiz:
 
             self.map_canvas.create_polygon(
                 points,
-                fill="#d9ddde",
-                outline="#c3c8ca",
-                width=1
+                fill="#EBEBEB",
             )
 
 
@@ -958,7 +956,7 @@ class AirportQuiz:
                 0,
                 x,
                 height,
-                fill="#dfe3e5"
+                fill="#808080"
             )
 
 
@@ -979,7 +977,7 @@ class AirportQuiz:
                 y,
                 width,
                 y,
-                fill="#dfe3e5"
+                fill="#808080"
             )
 
 
@@ -1062,10 +1060,10 @@ class AirportQuiz:
 
 
             self.map_canvas.create_oval(
-                x - 5,
-                y - 5,
-                x + 5,
-                y + 5,
+                x - 3,
+                y - 3,
+                x + 3,
+                y + 3,
                 fill="#c62828",
                 outline="#ffffff",
                 width=2
@@ -1082,7 +1080,7 @@ class AirportQuiz:
                     8,
                     "bold"
                 ),
-                fill="#222222"
+                fill="#434343",
             )
 
 

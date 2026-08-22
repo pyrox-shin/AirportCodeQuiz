@@ -2,7 +2,7 @@
 
 
 a = Analysis(
-    ['mainV2.1.py'],
+    ['mainV3.2.py'],
     pathex=[],
     binaries=[],
     datas=[],
