@@ -1,13 +1,13 @@
 # Airport Code Quiz V1
 
 一個以 Python / Tkinter 製作的 IATA 機場代碼練習遊戲。中央題目卡採用簡化的機場登機牌風格。
-目前這個遊戲以桃園機場（TPE）出發的所有航點為題目，資料來自桃園機場官方網站提供的[航班資訊純文字版](https://www.taoyuan-airport.com/flightopendata)的資訊，航點的經緯度則來自 @KierynAnnette 所提供的[ip2location-iata-icao](https://github.com/ip2location/ip2location-iata-icao/blob/master/iata-icao.csv)。
+目前這個遊戲以桃園機場（TPE）出發的所有航點為題目，資料來自桃園機場官方網站提供的[航班資訊純文字版](https://www.taoyuan-airport.com/flightopendata)的資訊，航空公司測驗的圖案也來自桃園機場官方網站。航點的經緯度則來自 @KierynAnnette 所提供的[ip2location-iata-icao](https://github.com/ip2location/ip2location-iata-icao/blob/master/iata-icao.csv)。
 
 ## 最新新更新：V4.2
 
 - 流暢化了地圖移動的動畫
-- 新增了航空公司測驗(`airlinesV2.py)
-- 新增了選單(list.py)
+- 新增了航空公司測驗(`airlinesV2.py`)
+- 新增了選單（`list.py`）
 - 多項優化（我也說不太清楚）
 
 

@@ -80,7 +80,7 @@ class GameLauncher:
 
                 elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
                     if hover1:
-                        self.launch_game("mainV4.2.py")
+                        self.launch_game("main4.py")
                     elif hover2:
                         self.launch_game("airlinesV2.py")
 
