@@ -55,14 +55,23 @@ class GameLauncher:
         self.screen.blit(t_surf, (rect.centerx - t_surf.get_width() // 2, rect.y + 18))
         self.screen.blit(s_surf, (rect.centerx - s_surf.get_width() // 2, rect.y + 48))
 
-    def launch_game(self, script_name):
-        script_path = APP_DIR / script_name
-        if script_path.exists():
-            pygame.quit()  # 關閉選單的 Pygame 視窗
-            subprocess.run([sys.executable, str(script_path)])  # 執行子遊戲
-            sys.exit()
+    def launch_game(self, mode):
+        """
+        以「重新啟動同一個程式（或 exe）並帶入模式參數」的方式切換遊戲，
+        取代直接呼叫 python 執行另一個 .py 檔的做法。
+        這樣打包成單一 exe 後依然可以正常切換畫面。
+        """
+        pygame.quit()  # 關閉選單的 Pygame 視窗
+
+        if getattr(sys, "frozen", False):
+            # 已被 PyInstaller 打包成 exe：sys.executable 就是這個 exe 本身
+            subprocess.run([sys.executable, mode])
         else:
-            print(f"錯誤：找不到 {script_name}")
+            # 開發階段仍以原始碼執行：呼叫 launcher_main.py 並帶入模式參數
+            launcher_path = APP_DIR / "launcher_main.py"
+            subprocess.run([sys.executable, str(launcher_path), mode])
+
+        sys.exit()
 
     def run(self):
         running = True
@@ -80,9 +89,9 @@ class GameLauncher:
 
                 elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
                     if hover1:
-                        self.launch_game("main4.py")
+                        self.launch_game("airport")
                     elif hover2:
-                        self.launch_game("airlinesV2.py")
+                        self.launch_game("airlines")
 
             # 背景渲染
             self.screen.fill((0xf4, 0xf5, 0xf7))

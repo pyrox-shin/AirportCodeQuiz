@@ -421,12 +421,14 @@ class AirportQuiz:
         self.next_question()
 
     def return_to_menu(self):
-        """開啟同目錄下的 list.py 並關閉當前遊戲。"""
-        list_script = APP_DIR / "list.py"
-        if list_script.exists():
-            subprocess.Popen([sys.executable, str(list_script)], cwd=str(APP_DIR))
+        """重新啟動同一個程式（或 exe）並帶入 menu 參數，回到選單畫面。"""
+        if getattr(sys, "frozen", False):
+            subprocess.Popen([sys.executable, "menu"], cwd=str(APP_DIR))
         else:
-            print(f"找不到 {list_script}")
+            launcher_path = APP_DIR / "launcher_main.py"
+            subprocess.Popen(
+                [sys.executable, str(launcher_path), "menu"], cwd=str(APP_DIR)
+            )
         self.running = False
 
     # ========================================================
