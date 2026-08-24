@@ -10,6 +10,9 @@
 - 新增了選單（`list.py`）
 - 多項優化（我也說不太清楚）
 
+### V4.2.1
+- exe版：執行路徑`dist\AviationQuiz\AviationQuiz.exe`就可以直接遊玩！耶！
+
 
 ## 執行需求
 

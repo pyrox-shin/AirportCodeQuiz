@@ -167,9 +167,13 @@ class AirlineQuizPygame:
         self.next_question()
 
     def back_to_menu(self):
-        list_py_path = APP_DIR / "list.py"
-        if list_py_path.exists():
-            subprocess.Popen([sys.executable, str(list_py_path)])
+        if getattr(sys, "frozen", False):
+            subprocess.Popen([sys.executable, "menu"], cwd=str(APP_DIR))
+        else:
+            launcher_path = APP_DIR / "launcher_main.py"
+            subprocess.Popen(
+                [sys.executable, str(launcher_path), "menu"], cwd=str(APP_DIR)
+            )
         pygame.quit()
         sys.exit()
 
