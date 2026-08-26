@@ -21,7 +21,8 @@ def get_app_dir():
 
 
 APP_DIR = get_app_dir()
-AIRPORT_FILE = APP_DIR / "airport.csv"
+AIRPORT_DIR = APP_DIR / "airport"
+DEFAULT_AIRPORT_FILE = AIRPORT_DIR / "TPE.csv"
 WORLD_MAP_FILE = APP_DIR / "worldmap.geojson"
 SOUND_DIR = APP_DIR / "sounds"
 CORRECT_SOUND_FILE = SOUND_DIR / "correct.mp3"
@@ -50,7 +51,8 @@ GREEN = (22, 128, 60)
 class AirportQuiz:
     """Pygame 版 Airport Code Quiz。"""
 
-    def __init__(self):
+    def __init__(self, csv_path=None):
+        self.csv_path = (APP_DIR / csv_path) if csv_path else DEFAULT_AIRPORT_FILE
         pygame.init()
         pygame.display.set_caption("Airport Code Quiz")
 
@@ -314,12 +316,12 @@ class AirportQuiz:
     # CSV
     # ========================================================
     def load_questions(self):
-        if not AIRPORT_FILE.exists():
-            print(f"找不到題庫：{AIRPORT_FILE}")
+        if not self.csv_path.exists():
+            print(f"找不到題庫：{self.csv_path}")
             return
 
         try:
-            with AIRPORT_FILE.open("r", encoding="utf-8-sig", newline="") as f:
+            with self.csv_path.open("r", encoding="utf-8-sig", newline="") as f:
                 sample = f.read(4096)
                 f.seek(0)
 
@@ -332,7 +334,7 @@ class AirportQuiz:
                 required = {"name", "code", "lat", "lon"}
 
                 if not reader.fieldnames:
-                    raise ValueError("airport.csv 沒有欄位名稱。")
+                    raise ValueError("題庫沒有欄位名稱。")
 
                 fields = {
                     str(field).strip().lstrip("\ufeff")
@@ -341,7 +343,7 @@ class AirportQuiz:
                 }
                 missing = required - fields
                 if missing:
-                    raise ValueError(f"airport.csv 缺少欄位：{', '.join(sorted(missing))}")
+                    raise ValueError(f"題庫缺少欄位：{', '.join(sorted(missing))}")
 
                 rows = []
                 for row in reader:
@@ -376,13 +378,13 @@ class AirportQuiz:
                     })
 
                 if not rows:
-                    raise ValueError("airport.csv 沒有可用題目。")
+                    raise ValueError("沒有可用題目。")
 
                 self.questions = rows
                 self.total = len(rows)
 
         except Exception as e:
-            print("讀取 airport.csv 失敗：", e)
+            print("讀取題庫失敗：", e)
             self.questions = []
             self.total = 0
 
@@ -1177,12 +1179,12 @@ class AirportQuiz:
         pygame.quit()
 
 
-def main():
-    game = AirportQuiz()
+def main(csv_path=None):
+    game = AirportQuiz(csv_path)
     if game.questions:
         game.run()
     else:
-        print("無法啟動遊戲：請確認 airport.csv 存在且欄位為 name, code, lat, lon。")
+        print("無法啟動遊戲：請確認題庫存在且欄位為 name, code, lat, lon。")
         pygame.quit()
 
 

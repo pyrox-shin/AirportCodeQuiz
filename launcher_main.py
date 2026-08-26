@@ -2,14 +2,17 @@
 統一進入點 (打包 exe 時，請以這支檔案作為 PyInstaller 的進入點)。
 
 用法：
-    launcher_main.py            -> 開啟選單 (list.py 的內容)
-    launcher_main.py menu       -> 開啟選單
-    launcher_main.py airport    -> 開啟機場代碼測驗 (mainV4.py 的內容)
-    launcher_main.py airlines   -> 開啟航空公司測驗 (airlinesV2.py 的內容)
+    launcher_main.py                          -> 開啟選單 (list.py 的內容)
+    launcher_main.py menu                     -> 開啟選單
+    launcher_main.py airport                  -> 開啟機場代碼測驗，預設題庫 (airport/TPE.csv)
+    launcher_main.py airport airport/KHH.csv  -> 開啟機場代碼測驗，並指定題庫
+    launcher_main.py airport airlines/CI.csv  -> 開啟機場代碼測驗，並指定「航空公司航點」題庫
+    launcher_main.py airlines                 -> 開啟航空公司測驗 (airlinesV2.py 的內容)
 
 list.py / mainV4.py / airlinesV2.py 內部在「選單 <-> 遊戲」互相切換時，
-都會呼叫 sys.executable 並帶入上述模式參數，重新啟動同一支 exe（或此檔案），
-藉此取代原本「用 python 執行另一個 .py 檔」的做法（打包成 exe 後行不通）。
+都會呼叫 sys.executable 並帶入上述模式參數（以及題庫路徑），重新啟動同一支
+exe（或此檔案），藉此取代原本「用 python 執行另一個 .py 檔」的做法
+（打包成 exe 後行不通）。
 
 本檔案還會把任何未預期的例外攔截下來，寫進 exe 旁邊的 error_log.txt，
 避免使用 --noconsole 打包後，程式出錯時只是「閃退」而看不到任何原因。
@@ -29,11 +32,15 @@ APP_DIR = get_app_dir()
 
 
 def run():
-    mode = sys.argv[1] if len(sys.argv) > 1 else "menu"
+    args = sys.argv[1:]
+    mode = args[0] if args else "menu"
 
     if mode == "airport":
+        # args[1] 是選單傳來的題庫相對路徑，例如 "airport/KHH.csv" 或
+        # "airlines/CI.csv"；沒有傳入時交給 mainV4.py 使用預設題庫。
+        csv_rel_path = args[1] if len(args) > 1 else None
         from mainV4 import main as run_airport_quiz
-        run_airport_quiz()
+        run_airport_quiz(csv_rel_path)
 
     elif mode == "airlines":
         from airlinesV2 import AirlineQuizPygame
