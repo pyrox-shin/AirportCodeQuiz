@@ -1,14 +1,12 @@
 # Airport Code Quiz V1
 
-一個以 Python / Tkinter 製作的 IATA 機場代碼練習遊戲。中央題目卡採用簡化的機場登機牌風格。
+一個以 Python / Pygame 製作的 IATA 機場代碼練習遊戲。中央題目卡採用簡化的機場登機牌風格。
 目前這個遊戲以桃園機場（TPE）出發的所有航點為題目，資料來自桃園機場官方網站提供的[航班資訊純文字版](https://www.taoyuan-airport.com/flightopendata)的資訊，航空公司測驗的圖案也來自桃園機場官方網站。航點的經緯度則來自 @KierynAnnette 所提供的[ip2location-iata-icao](https://github.com/ip2location/ip2location-iata-icao/blob/master/iata-icao.csv)。
 
-## 最新新更新：V4.2
+## branch exe最後更新版
 
-- 流暢化了地圖移動的動畫
-- 新增了航空公司測驗(`airlinesV2.py`)
-- 新增了選單（`list.py`）
-- 多項優化（我也說不太清楚）
+我決定把這個版本留在這裡，供大家自己抽換題目。大家可以自行抽換`airport.csv`的題庫，只要四個標頭`name`、`code`、`lat`、`lon`的資料都還在就可以使用，經緯度的資料可以善用上面提到的[ip2location-iata-icao](https://github.com/ip2location/ip2location-iata-icao/blob/master/iata-icao.csv)尋找。我也會努力創造其他題庫，但都還在開發中。
+至於航空公司代碼的測驗，大家也可以抽換`airlines/airlines.csv`的內容，一樣只要`code`跟`name`維持一樣的內容即可。可能桃機沒有飛的就沒有圖片，但仍舊可以用。你也可以自行下載圖片，檔名只要是`{code}.gif`理論上就可以運作，歡迎隨時報錯給我，也請期待主遊戲的更新。
 
 ### V4.2.1
 - exe版：執行路徑`dist\AviationQuiz\AviationQuiz.exe`就可以直接遊玩！耶！
