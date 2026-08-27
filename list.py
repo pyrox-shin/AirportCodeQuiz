@@ -107,7 +107,7 @@ class GameLauncher:
                 col_width,
                 btn_h,
             )
-            csv_path = AIRLINE_DIR / f"{code}.csv"
+            csv_path = AIRPORT_DIR / f"{code}.csv"
             logo_path = AIRLINE_IMG_DIR / f"{code}.gif"
             self.airline_buttons.append({
                 "rect": rect,
