@@ -3,6 +3,8 @@
 一個以 Python / Tkinter 製作的 IATA 機場代碼練習遊戲。中央題目卡採用簡化的機場登機牌風格。
 目前這個遊戲以桃園機場（TPE）出發的所有航點為題目，資料來自桃園機場官方網站提供的[航班資訊純文字版](https://www.taoyuan-airport.com/flightopendata)的資訊，航空公司測驗的圖案也來自桃園機場官方網站。航點的經緯度則來自 @KierynAnnette 所提供的[ip2location-iata-icao](https://github.com/ip2location/ip2location-iata-icao/blob/master/iata-icao.csv)。
 
+目前所有航線資料更新到2026年8月的最新消息。
+
 ## 最新新更新：V4.2
 
 - 流暢化了地圖移動的動畫
@@ -16,6 +18,9 @@
 ### V4.2.2
 - 新增了選單，可以選擇不同的題目類型
 - 新增了高雄國際機場（KHH）的題庫
+
+### V4.2.3
+- 加入了目前所有的題庫
 
 
 ## 執行需求
