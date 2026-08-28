@@ -66,12 +66,12 @@ echo.
 echo ============================================
 echo  Step 4/4: Copy data files next to each exe
 echo ============================================
-if exist airport.csv       xcopy /y airport.csv dist\AviationQuiz\
+if exist airport           xcopy /y /e /i airport dist\AviationQuiz\airport\
 if exist worldmap.geojson  xcopy /y worldmap.geojson dist\AviationQuiz\
 if exist sounds            xcopy /y /e /i sounds dist\AviationQuiz\sounds\
 if exist airlines          xcopy /y /e /i airlines dist\AviationQuiz\airlines\
 
-if exist airport.csv       xcopy /y airport.csv dist\AviationQuiz_debug\
+if exist airport           xcopy /y /e /i airport dist\AviationQuiz_debug\
 if exist worldmap.geojson  xcopy /y worldmap.geojson dist\AviationQuiz_debug\
 if exist sounds            xcopy /y /e /i sounds dist\AviationQuiz_debug\sounds\
 if exist airlines          xcopy /y /e /i airlines dist\AviationQuiz_debug\airlines\
