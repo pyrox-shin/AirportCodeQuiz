@@ -39,7 +39,7 @@
 
 ## 使用方式
 
-目前需要用python執行，可以使用bash執行`python list.py`，即可透過選單進行遊戲
+可以直接整個下載以後進到`./dist/AviationQuiz`中開啟`AviationQuiz.exe`即可直接開始遊戲。
 
 ## 遊戲規則
 
