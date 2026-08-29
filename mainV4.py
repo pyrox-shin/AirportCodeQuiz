@@ -24,6 +24,14 @@ APP_DIR = get_app_dir()
 AIRPORT_DIR = APP_DIR / "airport"
 DEFAULT_AIRPORT_FILE = AIRPORT_DIR / "TPE.csv"
 WORLD_MAP_FILE = APP_DIR / "worldmap.geojson"
+
+# 地圖底圖固定使用的邏輯解析度（不隨視窗大小改變）。
+# 長寬比固定為 2:1，對應經度 360 度、緯度 180 度的等距圓柱投影
+# （Plate Carrée / Equirectangular），確保地圖比例不會因為視窗縮放、
+# 全螢幕等操作而變形，也不會有任何緯度區間被裁切掉。
+BASE_MAP_W = 1440
+BASE_MAP_H = 720
+
 SOUND_DIR = APP_DIR / "sounds"
 CORRECT_SOUND_FILE = SOUND_DIR / "correct.mp3"
 WRONG_SOUND_FILE = SOUND_DIR / "wrong.mp3"
@@ -87,7 +95,7 @@ class AirportQuiz:
 
         self.finished = False
         self.processing_answer = False
-        self.start_time = time.perf_counter()
+        self.start_time = None
         self.finish_elapsed = 0.0
 
         self.answer = ""
@@ -237,22 +245,25 @@ class AirportQuiz:
             self.world_map = None
 
     def render_map_cache(self):
-        if not self.world_map or not hasattr(self, "map_rect"):
+        if not self.world_map:
             return
 
-        w = max(self.map_rect.width, 1) * self.map_zoom
-        h = max(self.map_rect.height, 1) * self.map_zoom
-        
-        self.map_surface_cache = pygame.Surface((int(w), int(h))).convert()
+        # 底圖大小固定為 BASE_MAP_W/H * 縮放倍率，不再依賴 map_rect
+        # （也就是不受視窗大小/形狀影響），畫面上看到的只是這張固定底圖
+        # 的其中一塊「可視窗口」（透過 map_offset_x/y 平移）。
+        w = int(BASE_MAP_W * self.map_zoom)
+        h = int(BASE_MAP_H * self.map_zoom)
+
+        self.map_surface_cache = pygame.Surface((w, h)).convert()
         self.map_surface_cache.fill(MAP_BG)
 
         for lon in range(-180, 181, 30):
             x, _ = self.latlon_to_point(0, lon)
-            pygame.draw.line(self.map_surface_cache, GRID, (int(x), 0), (int(x), int(h)), 1)
+            pygame.draw.line(self.map_surface_cache, GRID, (int(x), 0), (int(x), h), 1)
 
         for lat in range(-60, 91, 30):
             _, y = self.latlon_to_point(lat, 0)
-            pygame.draw.line(self.map_surface_cache, GRID, (0, int(y)), (int(w), int(y)), 1)
+            pygame.draw.line(self.map_surface_cache, GRID, (0, int(y)), (w, int(y)), 1)
 
         for feature in self.world_map.get("features", []):
             geometry = feature.get("geometry") or {}
@@ -264,15 +275,15 @@ class AirportQuiz:
                     pygame.draw.lines(self.map_surface_cache, MAP_OUTLINE, True, points, 1)
 
     def latlon_to_point(self, lat, lon):
-        w = max(self.map_rect.width, 1)
-        h = max(self.map_rect.height, 1)
+        # 標準等距圓柱投影（Plate Carrée）：經度、緯度都線性對應到固定的
+        # BASE_MAP_W / BASE_MAP_H 底圖尺寸，橫縱比例固定為 2:1，
+        # 不會因為視窗大小/形狀改變而變形，緯度 -90~90 度也會完整對應到
+        # 0~BASE_MAP_H，不會有任何區段被裁掉。
+        w = BASE_MAP_W * self.map_zoom
+        h = BASE_MAP_H * self.map_zoom
 
-        # 移除原本的 cos_lat 縮放，使經度橫向保持標準比例
-        x = (float(lon) + 180.0) / 360.0 * (w * self.map_zoom)
-        
-        # 增加 Y 軸的緯度延伸倍率 (乘以 1.35~1.5 可顯著增加縱向長度)
-        lat_stretch = 1.35
-        y = (90.0 - float(lat)) / 180.0 * (h * self.map_zoom) * lat_stretch
+        x = (float(lon) + 180.0) / 360.0 * w
+        y = (90.0 - float(lat)) / 180.0 * h
 
         return int(x), int(y)
 
@@ -418,7 +429,7 @@ class AirportQuiz:
         self.map_animation = None
 
         # 重新開始計時
-        self.start_time = time.perf_counter()
+        self.start_time = None
         self.finish_elapsed = 0.0
         self.next_question()
 
@@ -597,32 +608,92 @@ class AirportQuiz:
         if self.map_surface_cache:
             surface.blit(self.map_surface_cache, (int(self.map_offset_x), int(self.map_offset_y)))
 
-        for airport in self.completed_airports:
-            self.draw_airport_marker(surface, airport, completed=True)
+        # 只顯示已經答對的航點（紅點）；當前題目在答對之前不會出現任何標記。
+        markers = [(airport, True) for airport in self.completed_airports]
 
-        if self.question_number == 1 and self.current:
-            self.draw_airport_marker(surface, self.current, completed=False)
+        # 先算出畫面座標，濾掉超出可視範圍的航點
+        visible = []
+        for airport, completed in markers:
+            try:
+                x, y = self.latlon_to_point(float(airport["lat"]), float(airport["lon"]))
+            except (KeyError, TypeError, ValueError):
+                continue
 
-    def draw_airport_marker(self, surface, airport, completed=True):
-        try:
-            x, y = self.latlon_to_point(float(airport["lat"]), float(airport["lon"]))
-        except (KeyError, TypeError, ValueError):
-            return
+            sx = int(x + self.map_offset_x)
+            sy = int(y + self.map_offset_y)
 
-        sx = int(x + self.map_offset_x)
-        sy = int(y + self.map_offset_y)
+            if sx < -30 or sy < -30 or sx > self.map_rect.width + 30 or sy > self.map_rect.height + 30:
+                continue
 
-        if sx < -30 or sy < -30 or sx > self.map_rect.width + 30 or sy > self.map_rect.height + 30:
-            return
+            visible.append({"airport": airport, "completed": completed, "sx": sx, "sy": sy})
 
-        radius = 5 if completed else 7
-        color = RED if completed else DARK
+        # 先畫所有圓點，確保標籤不會蓋住圓點本身
+        for m in visible:
+            radius = 5 if m["completed"] else 7
+            color = RED if m["completed"] else DARK
+            pygame.draw.circle(surface, color, (m["sx"], m["sy"]), radius)
+            pygame.draw.circle(surface, WHITE, (m["sx"], m["sy"]), radius, 2)
 
-        pygame.draw.circle(surface, color, (sx, sy), radius)
-        pygame.draw.circle(surface, WHITE, (sx, sy), radius, 2)
+        # 再統一處理標籤位置，避免互相重疊
+        self.draw_airport_labels(surface, visible)
 
-        label = self.text(airport["code"], "map_code", DARK)
-        surface.blit(label, (sx + 9, sy - label.get_height() // 2))
+    def draw_airport_labels(self, surface, visible):
+        """
+        簡易的標籤防重疊排版：對每個航點，依序嘗試「右／右上／右下／左／
+        左上／左下／上／下」共 8 個候選位置，挑第一個不會跟已放置的標籤、
+        或其他航點圓點重疊的位置來畫；如果全部候選位置都會重疊，就退回
+        使用預設的右側位置，確保至少畫得出來、不會整個消失。
+
+        這個「候選位置 + 逐一碰撞檢查」的想法，概念上類似 QGIS 等 GIS
+        軟體的標籤引擎（label engine）常見做法，但這裡是完全獨立寫的
+        簡化版本，並沒有參考或使用任何 QGIS 原始碼。
+        """
+        placed_rects = []
+        marker_radius = 8  # 圓點（含白色外框）的碰撞半徑，避免標籤蓋住其他圓點
+
+        for m in visible:
+            code = m["airport"]["code"]
+            label = self.text(code, "map_code", DARK)
+            lw, lh = label.get_size()
+            sx, sy = m["sx"], m["sy"]
+
+            gap = 9
+            candidates = [
+                (gap, -lh // 2),           # 右
+                (gap, -lh - 2),            # 右上
+                (gap, 2),                  # 右下
+                (-lw - gap, -lh // 2),     # 左
+                (-lw - gap, -lh - 2),      # 左上
+                (-lw - gap, 2),            # 左下
+                (-lw // 2, -gap - lh),     # 上
+                (-lw // 2, gap),           # 下
+            ]
+
+            chosen_rect = None
+            for dx, dy in candidates:
+                rect = pygame.Rect(sx + dx, sy + dy, lw, lh)
+
+                if any(rect.colliderect(r) for r in placed_rects):
+                    continue
+
+                if any(
+                    rect.colliderect(pygame.Rect(
+                        other["sx"] - marker_radius, other["sy"] - marker_radius,
+                        marker_radius * 2, marker_radius * 2,
+                    ))
+                    for other in visible
+                ):
+                    continue
+
+                chosen_rect = rect
+                break
+
+            if chosen_rect is None:
+                dx, dy = candidates[0]
+                chosen_rect = pygame.Rect(sx + dx, sy + dy, lw, lh)
+
+            surface.blit(label, chosen_rect.topleft)
+            placed_rects.append(chosen_rect)
 
     # ========================================================
     # Layout
@@ -1065,7 +1136,8 @@ class AirportQuiz:
                 event.size,
                 pygame.RESIZABLE
             )
-            self.map_surface_cache = None
+            # 地圖底圖現在是固定尺寸（不依賴視窗大小），視窗縮放不需要
+            # 重新產生地圖快取，只要重新排版可視窗口（map_rect）即可。
             self.layout()
             return
 
@@ -1116,6 +1188,8 @@ class AirportQuiz:
             return
 
         if event.type == pygame.KEYDOWN:
+            if self.start_time is None:
+                self.start_time = time.perf_counter()
             if event.key == pygame.K_RETURN:
                 self.skip_question()
                 return
@@ -1166,8 +1240,9 @@ class AirportQuiz:
     # Run
     # ========================================================
     def run(self):
-        # 遊戲進入主迴圈前再次重設計時，確保完全剔除載入圖片、地圖的時間差異
-        self.start_time = time.perf_counter()
+        # 遊戲進入主迴圈前，先確保計時是「尚未開始」的狀態，
+        # 真正開始計時的時機在 handle_event() 收到第一次按鍵時。
+        self.start_time = None
         while self.running:
             for event in pygame.event.get():
                 self.handle_event(event)

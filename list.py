@@ -26,6 +26,7 @@ AIRPORT_BANKS = [
     ("成田國際機場", "NRT.csv"),
     ("香港國際機場", "HKG.csv"),
     ("關西國際機場", "KIX.csv"),
+    ("首爾仁川國際機場", "ICN.csv"),
 ]
 
 AIRLINE_BANKS = [
