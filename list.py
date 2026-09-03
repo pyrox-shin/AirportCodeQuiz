@@ -46,11 +46,11 @@ DISABLED_BORDER = theme.LIGHT_THEME["DISABLED_BORDER"]
 # 來玩，只是題庫內容不同（全部航點 vs. 特定航空公司飛的航點）。
 # ------------------------------------------------------------
 AIRPORT_BANKS = [
-    ("桃園國際機場", "TPE.csv"),
+    ("台北桃園國際機場", "TPE.csv"),
     ("高雄國際機場", "KHH.csv"),
-    ("成田國際機場", "NRT.csv"),
+    ("東京成田國際機場", "NRT.csv"),
     ("香港國際機場", "HKG.csv"),
-    ("關西國際機場", "KIX.csv"),
+    ("大阪關西國際機場", "KIX.csv"),
 ]
 
 AIRLINE_BANKS = [
@@ -70,6 +70,7 @@ AIRLINE_BANKS = [
 AIRLINE_QUIZ_BANKS = [
     ("台北桃園國際機場", "TPE.csv"),
     ("大阪關西國際機場", "KIX.csv"),
+    ("東京成田國際機場", "NRT.csv"),
 ]
 
 
