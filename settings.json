@@ -9,11 +9,11 @@
       "time": 196.0
     },
     "airlines": {
-      "correct": 55,
+      "correct": 56,
       "total": 56,
-      "skipped": 1,
-      "accuracy": 98.2,
-      "time": 91.9
+      "skipped": 0,
+      "accuracy": 100.0,
+      "time": 85.5
     },
     "airport/KIX.csv": {
       "correct": 63,

@@ -14,7 +14,7 @@ def get_app_dir():
 APP_DIR = get_app_dir()
 AIRPORT_DIR = APP_DIR / "airport"
 AIRLINE_DIR = APP_DIR / "airlines"
-AIRLINE_IMG_DIR = AIRLINE_DIR / "img"
+AIRLINE_IMG_DIR = AIRLINE_DIR / "tpe"
 
 # ------------------------------------------------------------
 # 顏色：以下這些名稱只是「初始值」，實際顯示的顏色會在 __init__ 裡

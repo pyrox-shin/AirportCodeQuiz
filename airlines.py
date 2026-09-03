@@ -21,7 +21,6 @@ AIRLINES_DIR = APP_DIR / "airlines"
 # 預設題庫：之後每個機場一份 csv（例如 TPE.csv、KIX.csv），放在這個
 # 資料夾裡；沒有從選單帶入指定題庫時，就使用這個預設值。
 DEFAULT_AIRLINES_FILE = AIRLINES_DIR / "TPE.csv"
-AIRLINES_IMG_DIR = AIRLINES_DIR / "img"
 
 SOUND_DIR = APP_DIR / "sounds"
 CORRECT_SOUND_FILE = SOUND_DIR / "correct.mp3"
@@ -56,6 +55,7 @@ class AirlineQuizPygame:
         # csv_path：從選單傳來、相對於程式根目錄的題庫路徑
         # （例如 "airlines/KIX.csv"）；沒有傳入時使用預設題庫。
         self.csv_path = (APP_DIR / csv_path) if csv_path else DEFAULT_AIRLINES_FILE
+        self.airlines_img_dir = AIRLINES_DIR / self.csv_path.stem.lower()
 
         pygame.init()
         pygame.font.init()
@@ -222,15 +222,14 @@ class AirlineQuizPygame:
 
     def load_airline_image(self, code):
         for ext in [".gif", ".png", ".jpg"]:
-            img_path = AIRLINES_IMG_DIR / f"{code}{ext}"
+            img_path = self.airlines_img_dir / f"{code}{ext}"
             if img_path.exists():
                 try:
                     img = pygame.image.load(str(img_path)).convert_alpha()
                     w, h = img.get_size()
-                    scale = min(200 / w, 100 / h)
-                    if scale < 1:
-                        new_size = (int(w * scale), int(h * scale))
-                        img = pygame.transform.smoothscale(img, new_size)
+                    scale = min(96 / w, 96 / h)
+                    new_size = (max(1, int(w * scale)), max(1, int(h * scale)))
+                    img = pygame.transform.smoothscale(img, new_size)
                     return img
                 except Exception as e:
                     print(f"圖片載入失敗: {img_path}", e)
