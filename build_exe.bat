@@ -32,7 +32,7 @@ if exist dist rmdir /s /q dist
 if exist AviationQuiz.spec del /q AviationQuiz.spec
 if exist AviationQuiz_debug.spec del /q AviationQuiz_debug.spec
 
-python -m PyInstaller --onedir --noconsole --name AviationQuiz --hidden-import=list --hidden-import=mainV4 --hidden-import=airlinesV2 launcher_main.py
+python -m PyInstaller --onedir --noconsole --name AviationQuiz --hidden-import=list --hidden-import=mainV4 --hidden-import=airlinesV2 --hidden-import=theme --hidden-import=records launcher_main.py
 if errorlevel 1 (
     echo [ERROR] PyInstaller build failed. See messages above.
     goto :error
@@ -56,7 +56,7 @@ echo ============================================
 echo  Step 3/4: Build debug exe (keeps console window)
 echo  Use this one first if the release exe closes immediately without any window.
 echo ============================================
-python -m PyInstaller --onedir --name AviationQuiz_debug --hidden-import=list --hidden-import=mainV4 --hidden-import=airlinesV2 launcher_main.py
+python -m PyInstaller --onedir --name AviationQuiz_debug --hidden-import=list --hidden-import=mainV4 --hidden-import=airlinesV2 --hidden-import=theme --hidden-import=records launcher_main.py
 if errorlevel 1 (
     echo [ERROR] Debug build failed. See messages above.
     goto :error
@@ -66,12 +66,12 @@ echo.
 echo ============================================
 echo  Step 4/4: Copy data files next to each exe
 echo ============================================
-if exist airport           xcopy /y /e /i airport dist\AviationQuiz\airport\
+if exist airport.csv       xcopy /y airport.csv dist\AviationQuiz\
 if exist worldmap.geojson  xcopy /y worldmap.geojson dist\AviationQuiz\
 if exist sounds            xcopy /y /e /i sounds dist\AviationQuiz\sounds\
 if exist airlines          xcopy /y /e /i airlines dist\AviationQuiz\airlines\
 
-if exist airport           xcopy /y /e /i airport dist\AviationQuiz_debug\
+if exist airport.csv       xcopy /y airport.csv dist\AviationQuiz_debug\
 if exist worldmap.geojson  xcopy /y worldmap.geojson dist\AviationQuiz_debug\
 if exist sounds            xcopy /y /e /i sounds dist\AviationQuiz_debug\sounds\
 if exist airlines          xcopy /y /e /i airlines dist\AviationQuiz_debug\airlines\

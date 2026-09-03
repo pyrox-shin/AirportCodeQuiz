@@ -1,0 +1,26 @@
+{
+  "dark_mode": false,
+  "best_scores": {
+    "airport/TPE.csv": {
+      "correct": 101,
+      "total": 102,
+      "skipped": 1,
+      "accuracy": 99.0,
+      "time": 196.0
+    },
+    "airlines": {
+      "correct": 55,
+      "total": 56,
+      "skipped": 1,
+      "accuracy": 98.2,
+      "time": 91.9
+    },
+    "airport/KIX.csv": {
+      "correct": 63,
+      "total": 67,
+      "skipped": 4,
+      "accuracy": 94.0,
+      "time": 131.0
+    }
+  }
+}

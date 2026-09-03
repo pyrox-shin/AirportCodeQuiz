@@ -9,6 +9,9 @@ from pathlib import Path
 
 import pygame
 
+import theme
+import records
+
 
 # ============================================================
 # 檔案位置
@@ -41,19 +44,24 @@ FINISH_SOUND_FILE = SOUND_DIR / "finish.mp3"
 # ============================================================
 # 顏色
 # ============================================================
-BG = (247, 247, 247)
-WHITE = (255, 255, 255)
-CARD = (253, 253, 251)
-BLACK = (23, 23, 23)
-DARK = (34, 34, 34)
-GRAY = (119, 119, 119)
-LIGHT_GRAY = (221, 221, 221)
-MAP_BG = (237, 241, 242)
-MAP_LAND = (217, 221, 222)
-MAP_OUTLINE = (195, 200, 202)
-GRID = (223, 227, 229)
-RED = (198, 40, 40)
-GREEN = (22, 128, 60)
+# 以下這些名稱只是「初始值」，實際顯示的顏色會在 __init__ 裡由
+# theme.ThemeToggle 依 settings.json 目前的深色/淺色設定覆寫；
+# 之後使用者按下畫面上的切換鈕，也是透過改寫這些模組全域變數換色，
+# 所以畫面各處只要維持用這些名稱畫圖（例如 pygame.draw.rect(surface,
+# DARK, ...)），就會自動套用新顏色，不需要逐一修改每個繪圖呼叫。
+BG = theme.LIGHT_THEME["BG"]
+WHITE = theme.LIGHT_THEME["WHITE"]
+CARD = theme.LIGHT_THEME["CARD"]
+BLACK = theme.LIGHT_THEME["BLACK"]
+DARK = theme.LIGHT_THEME["DARK"]
+GRAY = theme.LIGHT_THEME["GRAY"]
+LIGHT_GRAY = theme.LIGHT_THEME["LIGHT_GRAY"]
+MAP_BG = theme.LIGHT_THEME["MAP_BG"]
+MAP_LAND = theme.LIGHT_THEME["MAP_LAND"]
+MAP_OUTLINE = theme.LIGHT_THEME["MAP_OUTLINE"]
+GRID = theme.LIGHT_THEME["GRID"]
+RED = theme.LIGHT_THEME["RED"]
+GREEN = theme.LIGHT_THEME["GREEN"]
 
 
 class AirportQuiz:
@@ -74,6 +82,11 @@ class AirportQuiz:
         # 按鈕 Rect 宣告
         self.btn_restart_rect = pygame.Rect(0, 0, 0, 0)
         self.btn_menu_rect = pygame.Rect(0, 0, 0, 0)
+
+        # 深色模式切換鈕（右上角）；位置在 layout() 裡會依視窗大小重新校正。
+        self.theme_toggle = theme.ThemeToggle(
+            module_globals=globals(), x=self.screen.get_width() - 30 - 54, y=20,
+        )
 
         # 初始化 Layout Rects
         self.layout()
@@ -97,6 +110,11 @@ class AirportQuiz:
         self.processing_answer = False
         self.start_time = None
         self.finish_elapsed = 0.0
+
+        # 歷史最佳成績（在 finish_game() 結束時才會真正算出來）
+        self.best_result = None
+        self.previous_best_result = None
+        self.is_new_record = False
 
         self.answer = ""
         self.feedback = ""
@@ -424,6 +442,10 @@ class AirportQuiz:
         self.next_question_at = 0.0
         self.result_scroll = 0
 
+        self.best_result = None
+        self.previous_best_result = None
+        self.is_new_record = False
+
         self.map_offset_x = 0.0
         self.map_offset_y = 0.0
         self.map_animation = None
@@ -702,6 +724,9 @@ class AirportQuiz:
         w, h = self.screen.get_size()
         margin = max(20, int(w * 0.03))
 
+        if hasattr(self, "theme_toggle"):
+            self.theme_toggle.set_position(w - 30 - self.theme_toggle.width, 20)
+
         self.header_rect = pygame.Rect(margin, 8, w - margin * 2, 45)
         self.stats_rect = pygame.Rect(margin, 55, w - margin * 2, 40)
 
@@ -753,7 +778,7 @@ class AirportQuiz:
         )
 
     def draw_stats(self, surface):
-        pygame.draw.rect(surface, WHITE, self.stats_rect)
+        pygame.draw.rect(surface, CARD, self.stats_rect)
         pygame.draw.rect(surface, LIGHT_GRAY, self.stats_rect, 1)
 
         completed = self.correct + self.skipped
@@ -780,7 +805,7 @@ class AirportQuiz:
             x += img.get_width() + 30
 
     def draw_progress(self, surface):
-        pygame.draw.rect(surface, (230, 230, 230), self.progress_rect)
+        pygame.draw.rect(surface, LIGHTER_GRAY, self.progress_rect)
         completed = self.correct + self.skipped
         fraction = completed / self.total if self.total else 0
         fill = self.progress_rect.copy()
@@ -792,7 +817,7 @@ class AirportQuiz:
     # ========================================================
     def draw_quiz_card(self, surface):
         pygame.draw.rect(surface, CARD, self.card_rect)
-        pygame.draw.rect(surface, (207, 207, 207), self.card_rect, 1)
+        pygame.draw.rect(surface, LIGHT_GRAY, self.card_rect, 1)
 
         header_h = 42
         card_header = pygame.Rect(
@@ -876,8 +901,8 @@ class AirportQuiz:
             210,
             50,
         )
-        pygame.draw.rect(surface, WHITE, input_rect)
-        pygame.draw.rect(surface, (50, 50, 50), input_rect, 1)
+        pygame.draw.rect(surface, CARD, input_rect)
+        pygame.draw.rect(surface, BORDER, input_rect, 1)
 
         input_img = self.text(self.answer, "input", BLACK)
         surface.blit(
@@ -891,7 +916,7 @@ class AirportQuiz:
         hint = self.text(
             "若要跳過，按 Enter 鍵",
             "hint",
-            (136, 136, 136),
+            GRAY,
         )
         surface.blit(
             hint,
@@ -955,10 +980,12 @@ class AirportQuiz:
 
         card = self.card_rect
         pygame.draw.rect(surface, CARD, card)
-        pygame.draw.rect(surface, (207, 207, 207), card, 1)
+        pygame.draw.rect(surface, LIGHT_GRAY, card, 1)
 
         header = pygame.Rect(card.x, card.y, card.width, 42)
-        pygame.draw.rect(surface, BLACK, header)
+        # 跟測驗卡片的「登機證」黑色標頭列一樣，這裡也刻意用固定深色字面值，
+        # 不用會隨主題變動的 BLACK 常數，避免深色模式下這條列反而被染白。
+        pygame.draw.rect(surface, (23, 23, 23), header)
         label = self.text("AIRCODE", "card", WHITE)
         surface.blit(label, (header.x + 18, header.centery - label.get_height() // 2))
 
@@ -991,15 +1018,37 @@ class AirportQuiz:
             y += img.get_height() + 8
 
         # ----------------------------
+        # 歷史最佳成績（依題庫分開記錄，見 records.py）
+        # ----------------------------
+        y += 6
+        if self.is_new_record:
+            record_img = self.text("本題庫新紀錄！", "result", RED)
+            surface.blit(record_img, (self.result_left_rect.x + 15, y))
+            y += record_img.get_height() + 6
+
+            if self.previous_best_result is not None:
+                prev_text = "原紀錄：" + records.format_result(self.previous_best_result)
+                prev_img = self.text(prev_text, "result_small", GRAY)
+                surface.blit(prev_img, (self.result_left_rect.x + 15, y))
+                y += prev_img.get_height() + 8
+        elif self.best_result is not None:
+            best_text = "本題庫歷史最佳：" + records.format_result(self.best_result)
+            best_img = self.text(best_text, "result_small", GRAY)
+            surface.blit(best_img, (self.result_left_rect.x + 15, y))
+            y += best_img.get_height() + 8
+
+        # ----------------------------
         # 按鈕繪製
         # ----------------------------
         mouse_pos = pygame.mouse.get_pos()
 
         # 再試一次按鈕
         restart_hover = self.btn_restart_rect.collidepoint(mouse_pos)
+        # 「再來一次」是固定樣式的深色主按鈕，不管淺色/深色模式都維持固定的
+        # 深色（搭配 WHITE 文字），所以底色同樣用固定字面值，不用 BLACK 常數。
         pygame.draw.rect(
             surface,
-            DARK if restart_hover else BLACK,
+            (50, 50, 50) if restart_hover else (23, 23, 23),
             self.btn_restart_rect,
             border_radius=4,
         )
@@ -1016,7 +1065,7 @@ class AirportQuiz:
         menu_hover = self.btn_menu_rect.collidepoint(mouse_pos)
         pygame.draw.rect(
             surface,
-            LIGHT_GRAY if menu_hover else WHITE,
+            LIGHT_GRAY if menu_hover else CARD,
             self.btn_menu_rect,
             border_radius=4,
         )
@@ -1034,7 +1083,7 @@ class AirportQuiz:
         divider_x = self.result_right_rect.x - 18
         pygame.draw.line(
             surface,
-            (213, 213, 213),
+            LIGHT_GRAY,
             (divider_x, card.y + 55),
             (divider_x, card.bottom - 18),
             1,
@@ -1067,7 +1116,7 @@ class AirportQuiz:
                 5,
                 self.result_view_rect.height,
             )
-            pygame.draw.rect(surface, (225, 225, 225), track)
+            pygame.draw.rect(surface, LIGHTER_GRAY, track)
 
             ratio = self.result_view_rect.height / (
                 self.result_view_rect.height + max_scroll
@@ -1078,7 +1127,7 @@ class AirportQuiz:
                 * (self.result_scroll / max_scroll)
             )
             thumb = pygame.Rect(track.x, thumb_y, track.width, thumb_h)
-            pygame.draw.rect(surface, (150, 150, 150), thumb)
+            pygame.draw.rect(surface, GRAY, thumb)
 
     def max_result_scroll(self):
         y = 0
@@ -1102,6 +1151,18 @@ class AirportQuiz:
         else:
             self.finish_elapsed = 0.0
         self.play_sound(self.finish_sound, "finish.mp3")
+
+        # 跟歷史最佳成績比較、並視情況更新（依題庫分開記錄）。
+        quiz_key = self.csv_path.relative_to(APP_DIR).as_posix()
+        self.best_result, self.previous_best_result, self.is_new_record = (
+            records.update_best(
+                quiz_key,
+                correct=self.correct,
+                total=self.total,
+                skipped=self.skipped,
+                elapsed=self.finish_elapsed,
+            )
+        )
 
     def elapsed_time(self):
         if self.finished:
@@ -1140,6 +1201,10 @@ class AirportQuiz:
             # 重新產生地圖快取，只要重新排版可視窗口（map_rect）即可。
             self.layout()
             return
+
+        if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+            if self.theme_toggle.handle_click(event.pos):
+                return
 
         if self.finished:
             if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
@@ -1234,6 +1299,8 @@ class AirportQuiz:
         else:
             self.draw_quiz_card(self.screen)
 
+        self.theme_toggle.draw(self.screen, pygame.mouse.get_pos())
+
         pygame.display.flip()
 
     # ========================================================
@@ -1244,12 +1311,14 @@ class AirportQuiz:
         # 真正開始計時的時機在 handle_event() 收到第一次按鍵時。
         self.start_time = None
         while self.running:
+            dt = self.clock.tick(60) / 1000.0
+
             for event in pygame.event.get():
                 self.handle_event(event)
 
+            self.theme_toggle.update(dt)
             self.update()
             self.draw()
-            self.clock.tick(60)
 
         pygame.quit()
 

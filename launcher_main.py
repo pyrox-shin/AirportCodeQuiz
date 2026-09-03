@@ -2,12 +2,13 @@
 統一進入點 (打包 exe 時，請以這支檔案作為 PyInstaller 的進入點)。
 
 用法：
-    launcher_main.py                          -> 開啟選單 (list.py 的內容)
-    launcher_main.py menu                     -> 開啟選單
-    launcher_main.py airport                  -> 開啟機場代碼測驗，預設題庫 (airport/TPE.csv)
-    launcher_main.py airport airport/KHH.csv  -> 開啟機場代碼測驗，並指定題庫
-    launcher_main.py airport airlines/CI.csv  -> 開啟機場代碼測驗，並指定「航空公司航點」題庫
-    launcher_main.py airlines                 -> 開啟航空公司測驗 (airlinesV2.py 的內容)
+    launcher_main.py                            -> 開啟選單 (list.py 的內容)
+    launcher_main.py menu                       -> 開啟選單
+    launcher_main.py airport                    -> 開啟機場代碼測驗，預設題庫 (airport/TPE.csv)
+    launcher_main.py airport airport/KHH.csv    -> 開啟機場代碼測驗，並指定題庫
+    launcher_main.py airport airport/CI.csv     -> 開啟機場代碼測驗，並指定「航空公司全航點」題庫
+    launcher_main.py airlines                   -> 開啟航空公司測驗，預設題庫 (airlines/TPE.csv)
+    launcher_main.py airlines airlines/KIX.csv  -> 開啟航空公司測驗，並指定機場對應的題庫
 
 list.py / mainV4.py / airlinesV2.py 內部在「選單 <-> 遊戲」互相切換時，
 都會呼叫 sys.executable 並帶入上述模式參數（以及題庫路徑），重新啟動同一支
@@ -37,14 +38,21 @@ def run():
 
     if mode == "airport":
         # args[1] 是選單傳來的題庫相對路徑，例如 "airport/KHH.csv" 或
-        # "airlines/CI.csv"；沒有傳入時交給 mainV4.py 使用預設題庫。
+        # "airport/CI.csv"；沒有傳入時交給 mainV4.py 使用預設題庫。
         csv_rel_path = args[1] if len(args) > 1 else None
-        from mainV4 import main as run_airport_quiz
+        from main import main as run_airport_quiz
         run_airport_quiz(csv_rel_path)
 
     elif mode == "airlines":
-        from airlinesV2 import AirlineQuizPygame
-        AirlineQuizPygame().run()
+        # args[1] 是選單傳來的題庫相對路徑，例如 "airlines/KIX.csv"；
+        # 沒有傳入時交給 airlinesV2.py 使用預設題庫。
+        csv_rel_path = args[1] if len(args) > 1 else None
+        from airlines import AirlineQuizPygame
+        game = AirlineQuizPygame(csv_rel_path)
+        if game.questions:
+            game.run()
+        else:
+            print("無法啟動遊戲：請確認題庫存在且欄位為 name, code。")
 
     else:  # "menu" 或其他未知參數，一律回到選單
         from list import GameLauncher
