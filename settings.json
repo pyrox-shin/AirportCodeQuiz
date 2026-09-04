@@ -1,40 +1,5 @@
 {
   "dark_mode": false,
   "best_scores": {
-    "airport/TPE.csv": {
-      "correct": 101,
-      "total": 102,
-      "skipped": 1,
-      "accuracy": 99.0,
-      "time": 196.0
-    },
-    "airlines": {
-      "correct": 56,
-      "total": 56,
-      "skipped": 0,
-      "accuracy": 100.0,
-      "time": 85.0
-    },
-    "airport/KIX.csv": {
-      "correct": 63,
-      "total": 67,
-      "skipped": 4,
-      "accuracy": 94.0,
-      "time": 131.0
-    },
-    "airport/NRT.csv": {
-      "correct": 102,
-      "total": 112,
-      "skipped": 10,
-      "accuracy": 91.1,
-      "time": 257.4
-    },
-    "airport/BR.csv": {
-      "correct": 59,
-      "total": 59,
-      "skipped": 0,
-      "accuracy": 100.0,
-      "time": 115.5
-    }
   }
 }

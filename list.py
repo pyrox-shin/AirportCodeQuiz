@@ -71,6 +71,7 @@ AIRLINE_QUIZ_BANKS = [
     ("台北桃園國際機場", "TPE.csv"),
     ("大阪關西國際機場", "KIX.csv"),
     ("東京成田國際機場", "NRT.csv"),
+    ("首爾仁川國際機場", "ICN.csv"),
 ]
 
 
