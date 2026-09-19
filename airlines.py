@@ -539,7 +539,7 @@ class AirlineQuizPygame:
 
             self.screen.set_clip(old_clip)
 
-            btn_y = chead_rect.bottom + 230
+            btn_y = record_y + 40
             
             # 再來一次：固定深色主按鈕，跟登機證標頭列一樣不隨主題變動，
             # 避免深色模式下這顆按鈕反而被染亮、文字看不清楚。
